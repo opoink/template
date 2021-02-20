@@ -1,0 +1,26 @@
+{
+    "name": "opoink/template",
+    "description": "opoink template",
+    "keywords": ["opoink", "opoink template"],
+    "homepage": "https://github.com/opoink/template",
+    "license": "MIT",
+    "type": "library",
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Opoink\\Template\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.3.0",
+        "php-di/php-di": "^5.4"
+    },
+    "authors": [
+        {
+            "name": "Ron Rome Perez",
+            "email": "ron@opoink.com",
+            "homepage": "https://www.opoink.com",
+            "role": "Founder"
+        }
+    ]
+}
