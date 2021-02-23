@@ -11,19 +11,31 @@ class Component {
 
     protected $_param;
     protected $_config;
+    protected $_name;
 
     public function __construct(
         \Opoink\Cli\Request\Param $Param,
-        \Opoink\Cli\Config $Config
+        \Opoink\Cli\Config $Config,
+        \Opoink\Template\Name $Name
     ){
         $this->_param = $Param;
         $this->_config = $Config;
+        $this->_name = $Name;
     }
 
+    /**
+     * validate the name it should contain 
+     * alpha characters only
+     * (-) and (_) is serve as word separator
+     */
     protected function nameValidator($str){
         return preg_match("/^[a-zA-Z\-\_]+$/", $str);
     }
 
+    /**
+     * generate the component
+     * validate for some error
+     */
     public function generate(){
         $location = $this->_param->getArgv('location');
         if(!$location){
@@ -79,8 +91,8 @@ class Component {
         } else {
             $error = Text::TextColor('The component name should be alpha characters only.', Text::LIGHTRED) . PHP_EOL;
             $error .= Text::TextColor('Dash (-) and underscore (_) are accepted as well, but only as a separator.', Text::LIGHTRED) . PHP_EOL;
-            $error .= Text::TextColor('Ex:', Text::LIGHTRED) . PHP_EOL;
-            $error .= Text::TextColor('your-app: the result will be YourApp', Text::LIGHTRED) . PHP_EOL;
+            $error .= Text::TextColor('Ex: your-app: the result will be YourApp', Text::LIGHTRED) . PHP_EOL;
+            $error .= Text::TextColor('Ex: your_app: the result will be YourApp', Text::LIGHTRED) . PHP_EOL . PHP_EOL;
             echo $error;
         }
         die;
@@ -97,12 +109,14 @@ class Component {
                 if(isset($config['modules'][$vendor])){
                     
                     if(in_array($module, $config['modules'][$vendor])){
-                        echo Text::TextColor('Generate started.', Text::GREEN) . PHP_EOL;
-
                         /** 
                          * todo: start generating the component .ts fie
                          * and the component html file
                          */
+                        $generate = $this->generateComponentTs($target, $name);
+                        if($generate){
+                            $this->injectComponent();
+                        }
                         // echo Text::TextColor($target . ' ' . $name, Text::GREEN) . PHP_EOL;
                     } else {
                         $msg = 'There was no installed module ('.$vendor.')';
@@ -120,6 +134,92 @@ class Component {
             $msg = 'The system configuration file does not exist. Please install Opoink Framework first before you proceed.';
             echo Text::TextColor($msg, Text::RED) . PHP_EOL;
         }
+    }
+
+    /**
+     * inject the component into vue.components.json
+     * if there is no vue.components.json 
+     * we will try to create this file
+     */
+    protected function injectComponent(){
+        $msg = 'Injecting component to module vue.components.json file';
+        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+    }
+
+    /**
+     * generate the vue component ts
+     * and the vue component data ts
+     */
+    public function generateComponentTs($target, $name){
+        if(!$this->_name->checkIfExist($target, $name, 'ts')) {
+            $fName = $this->_name->pascalCase($name);
+
+            $targetDir = $target . DS . $fName;
+            $fullFName = $fName . '.component.ts';
+
+            $this->generateVueCom($targetDir, $fName, $fullFName);
+            $this->generateVueData($targetDir, $fName);
+            $this->generateTpl($targetDir, $fName);
+            return true;
+        } else {
+            $msg = 'The component already exists.';
+            echo Text::TextColor($msg, Text::RED) . PHP_EOL;
+            return false;
+        }
+    }
+
+    protected function generateTpl($targetDir, $fName){
+        $msg = 'Generating component template: ' . $targetDir . DS . $fName . '.html';
+        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+
+        $content = '<div class="'.$fName.'">' . PHP_EOL;
+        $content .= "\t" . 'Hello ' . $fName . PHP_EOL;
+        $content .= '</div>';
+        $this->write($targetDir, $content, $fName, 'html');
+    }
+
+    /**
+     * generate component vue data
+     */
+    protected function generateVueData($targetDir, $fName){
+        $msg = 'Generating component data: ' . $targetDir . DS . $fName . '.ts';
+        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+
+        $tsContent = file_get_contents( __DIR__ .DS.'model'.DS.'component.data.ts');
+        $tsContent = str_replace('{{cName}}', $fName, $tsContent);
+
+        $this->write($targetDir, $tsContent, $fName);
+    }
+
+    /**
+     * generate vue component ts
+     */
+    protected function generateVueCom($targetDir, $fName, $fullFName){
+        $msg = 'Generating component: ' . $targetDir . DS . $fullFName;
+        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+
+        $tsContent = file_get_contents( __DIR__ .DS.'model'.DS.'component.ts');
+        $tsContent = str_replace('{{cName}}', $fName, $tsContent);
+
+        $vueLoc = str_replace(ROOT.DS.'App'.DS, '', $targetDir);
+        $vueLocCount = count(explode(DS, $vueLoc));
+        $vueLoc = './'.str_repeat('../', $vueLocCount).'node/src/vue';
+
+        $tsContent = str_replace('{{vuejs}}', $vueLoc, $tsContent);
+
+        $this->write($targetDir, $tsContent, $fName.'.component');
+    }
+
+    /**
+     * write the data into a file
+     */
+    protected function write($targetDir, $tsContent, $fName, $ext='ts'){
+        $writer = new \Opoink\Template\filewriter();
+        $writer->setDirPath($targetDir)
+        ->setData($tsContent)
+        ->setFilename($fName)
+        ->setFileextension($ext)
+        ->write();
     }
 }
 ?>
