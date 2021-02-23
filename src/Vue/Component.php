@@ -115,7 +115,7 @@ class Component {
                          */
                         $generate = $this->generateComponentTs($target, $name);
                         if($generate){
-                            $this->injectComponent();
+                            $this->injectComponent($vendor, $module, $target, $name);
                         }
                         // echo Text::TextColor($target . ' ' . $name, Text::GREEN) . PHP_EOL;
                     } else {
@@ -138,12 +138,29 @@ class Component {
 
     /**
      * inject the component into vue.components.json
-     * if there is no vue.components.json 
+     * if there is no vue.components.ts 
      * we will try to create this file
      */
-    protected function injectComponent(){
-        $msg = 'Injecting component to module vue.components.json file';
+    protected function injectComponent($vendor, $module, $target, $name){
+        $fName = 'vue.components';
+        $targetDir = ROOT.DS.'App'.DS.'Ext'.DS.$vendor.DS.$module;
+        $ext = 'ts';
+        $name = $this->_name->pascalCase($name);
+
+        $msg = 'Injecting component to module vue.components.ts file';
         echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+
+        $vueCom = str_replace(ROOT.DS.'App'.DS.'Ext'.DS, '', $target);
+        $vueCom = './../../Ext/' . str_replace(DS, '/', $vueCom) .'/'.$name.'/'.$name.'.component';
+
+        $content = '';
+        if(file_exists($targetDir.DS.$fName.'.'.$ext)){
+            $content = file_get_contents($targetDir.DS.$fName.'.'.$ext);
+        }
+
+        $content .= "import '".$vueCom."';" . PHP_EOL;
+
+        $this->write($targetDir, $content, 'vue.components', 'ts');
     }
 
     /**
