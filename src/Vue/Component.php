@@ -57,7 +57,8 @@ class Component {
                 $error .= Text::TextColor('--location=Vendor_Module::dir/under/View/vue/components', Text::LIGHTRED) . PHP_EOL;
                 if($location){
                     $location = explode('::', $location);
-                    if(count($location) == 2){
+                    // if(count($location) == 2){
+                    if(isset($location[0])){
                         $vm = explode('_', $location[0]);
                         if(count($vm) == 2){
                             list($vendor, $module) = $vm;
@@ -70,7 +71,14 @@ class Component {
         
                             if(is_dir($vDir) && is_dir($mDir)){
                                 $vueCom = $mDir.DS.'View'.DS.'vue'.DS.'components';
-                                $target = $vueCom.DS. str_replace('/', DS, $location[1]);
+                                $target = $vueCom;
+                                if(isset($location[1])){
+                                    $location[1] = ltrim($location[1], DS);
+                                    $location[1] = ltrim($location[1], '/');
+                                    if(!empty($location[1])){
+                                        $target .= DS. str_replace('/', DS, $location[1]);
+                                    }
+                                }
                                 $this->generateHelper($target, $cName, $vendor, $module);
                             } else {
                                 echo Text::TextColor('The module '.$vendor.'_'.$module.' does not exist.', Text::LIGHTRED) . PHP_EOL;
@@ -119,7 +127,7 @@ class Component {
                         }
                         // echo Text::TextColor($target . ' ' . $name, Text::GREEN) . PHP_EOL;
                     } else {
-                        $msg = 'There was no installed module ('.$vendor.')';
+                        $msg = 'There was no installed module ('.$module.') in vendor ' . $vendor;
                         echo Text::TextColor($msg, Text::RED) . PHP_EOL;
                     }
                 } else {
@@ -150,8 +158,8 @@ class Component {
         $msg = 'Injecting component to module vue.components.ts file';
         echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
 
-        $vueCom = str_replace(ROOT.DS.'App'.DS.'Ext'.DS, '', $target);
-        $vueCom = './../../Ext/' . str_replace(DS, '/', $vueCom) .'/'.$name.'/'.$name.'.component';
+        $vueCom = str_replace($targetDir.DS, '', $target);
+        $vueCom = './' . str_replace(DS, '/', $vueCom) .'/'.$name.'/'.$name.'.component';
 
         $content = '';
         if(file_exists($targetDir.DS.$fName.'.'.$ext)){
@@ -220,8 +228,8 @@ class Component {
 
         $vueLoc = str_replace(ROOT.DS.'App'.DS, '', $targetDir);
         $vueLocCount = count(explode(DS, $vueLoc));
-        $vueLoc = './'.str_repeat('../', $vueLocCount).'node/src/vue';
-
+        $vueLoc = './'.str_repeat('../', $vueLocCount).'node/node_modules/vue/dist/vue.esm';
+        
         $tsContent = str_replace('{{vuejs}}', $vueLoc, $tsContent);
 
         $this->write($targetDir, $tsContent, $fName.'.component');
