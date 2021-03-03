@@ -29,7 +29,17 @@ class Component {
      * (-) and (_) is serve as word separator
      */
     protected function nameValidator($str){
-        return preg_match("/^[a-zA-Z\-\_]+$/", $str);
+        // return preg_match("/^[a-zA-Z\-\_]+$/", $str);
+        if(preg_match("/^[a-zA-Z\-\_]+$/", $str)){
+            /**
+             * TODO:
+             * the name is valid and we can do our checking if the name already exists
+             * in the other module
+             */
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -103,6 +113,11 @@ class Component {
             $error .= Text::TextColor('Ex: your_app: the result will be YourApp', Text::LIGHTRED) . PHP_EOL . PHP_EOL;
             echo $error;
         }
+
+        /**
+         * we should trigger die here
+         * since we dont want to out put the return of Opoink\Cli
+         */
         die;
     }
 
@@ -124,8 +139,8 @@ class Component {
                         $generate = $this->generateComponentTs($target, $name);
                         if($generate){
                             $this->injectComponent($vendor, $module, $target, $name);
+                            echo Text::TextColor('Done', Text::GREEN) . PHP_EOL;
                         }
-                        // echo Text::TextColor($target . ' ' . $name, Text::GREEN) . PHP_EOL;
                     } else {
                         $msg = 'There was no installed module ('.$module.') in vendor ' . $vendor;
                         echo Text::TextColor($msg, Text::RED) . PHP_EOL;
@@ -156,7 +171,7 @@ class Component {
         $name = $this->_name->pascalCase($name);
 
         $msg = 'Injecting component to module vue.components.ts file';
-        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+        echo Text::TextColor($msg, Text::YELLOW) . PHP_EOL;
 
         $vueCom = str_replace($targetDir.DS, '', $target);
         $vueCom = './' . str_replace(DS, '/', $vueCom) .'/'.$name.'/'.$name.'.component';
@@ -169,6 +184,37 @@ class Component {
         $content .= "import '".$vueCom."';" . PHP_EOL;
 
         $this->write($targetDir, $content, 'vue.components', 'ts');
+
+        $this->injectToJsonFile($name, $vendor, $module);
+    }
+
+    /**
+     * this will inject the new component into the
+     * JSON file for reference
+     */
+    protected function injectToJsonFile($name, $vendor, $module){
+        $targetDir = ROOT.DS.'App'.DS.'Ext'.DS.$vendor.DS.$module;
+        $fileName = 'components';
+        $ext = 'json';
+
+        $target = $targetDir.DS.$fileName.'.'.$ext;
+
+        $msg = 'Injecting component to module components.json file';
+        echo Text::TextColor($msg, Text::YELLOW) . PHP_EOL;
+
+        $json = [];
+        if(file_exists($target)){
+            $json = json_decode( file_get_contents($target) ,true);
+        }
+
+        $json[] = [
+            'component_name' => $name,
+            'vendor' => $vendor,
+            'module' => $module
+        ];
+
+        $content = json_encode($json, JSON_PRETTY_PRINT);
+        $this->write($targetDir, $content, $fileName, $ext);
     }
 
     /**
@@ -195,7 +241,7 @@ class Component {
 
     protected function generateTpl($targetDir, $fName){
         $msg = 'Generating component template: ' . $targetDir . DS . $fName . '.html';
-        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+        echo Text::TextColor($msg, Text::YELLOW) . PHP_EOL;
 
         $content = '<div class="'.$fName.'">' . PHP_EOL;
         $content .= "\t" . 'Hello ' . $fName . PHP_EOL;
@@ -208,7 +254,7 @@ class Component {
      */
     protected function generateVueData($targetDir, $fName){
         $msg = 'Generating component data: ' . $targetDir . DS . $fName . '.ts';
-        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+        echo Text::TextColor($msg, Text::YELLOW) . PHP_EOL;
 
         $tsContent = file_get_contents( __DIR__ .DS.'model'.DS.'component.data.ts');
         $tsContent = str_replace('{{cName}}', $fName, $tsContent);
@@ -221,16 +267,20 @@ class Component {
      */
     protected function generateVueCom($targetDir, $fName, $fullFName){
         $msg = 'Generating component: ' . $targetDir . DS . $fullFName;
-        echo Text::TextColor($msg, Text::GREEN) . PHP_EOL;
+        echo Text::TextColor($msg, Text::YELLOW) . PHP_EOL;
 
         $tsContent = file_get_contents( __DIR__ .DS.'model'.DS.'component.ts');
         $tsContent = str_replace('{{cName}}', $fName, $tsContent);
+        $tsContent = str_replace('{{cNameLower}}', strtolower($fName), $tsContent);
 
         $vueLoc = str_replace(ROOT.DS.'App'.DS, '', $targetDir);
         $vueLocCount = count(explode(DS, $vueLoc));
+
         $vueLoc = './'.str_repeat('../', $vueLocCount).'node/node_modules/vue/dist/vue.esm';
-        
         $tsContent = str_replace('{{vuejs}}', $vueLoc, $tsContent);
+
+        $injectorLoc = './'.str_repeat('../', $vueLocCount).'node/src/core/dom';
+        $tsContent = str_replace('{{injector}}', $injectorLoc, $tsContent);
 
         $this->write($targetDir, $tsContent, $fName.'.component');
     }
