@@ -17,3 +17,4 @@ let {{cName}}Component = Vue.component(name, {
     },
     template: tpl
 });
+export default {{cName}}Component;

@@ -231,12 +231,19 @@ class Component {
             $this->generateVueCom($targetDir, $fName, $fullFName);
             $this->generateVueData($targetDir, $fName);
             $this->generateTpl($targetDir, $fName);
+            $this->generateScss($targetDir, $fName);
             return true;
         } else {
             $msg = 'The component already exists.';
             echo Text::TextColor($msg, Text::RED) . PHP_EOL;
             return false;
         }
+    }
+
+    protected function generateScss($targetDir, $fName){
+        $msg = 'Generating component scss: ' . $targetDir . DS . $fName . '.scss';
+        echo Text::TextColor($msg, Text::YELLOW) . PHP_EOL;
+        $this->write($targetDir, '', $fName, 'scss');
     }
 
     protected function generateTpl($targetDir, $fName){
