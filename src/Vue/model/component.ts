@@ -6,7 +6,7 @@ import {{cName}} from './{{cName}}';
 let name = '{{cNameLower}}';
 let tpl = injector.inject(require('./{{cName}}.html'), name);
 
-Vue.component(name, {
+let {{cName}}Component = Vue.component(name, {
     data: (f) => {
         return {
             vue: {{cName}}
