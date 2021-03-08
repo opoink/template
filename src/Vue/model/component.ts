@@ -1,4 +1,3 @@
-declare function require(name:string);
 import Vue from '{{vuejs}}';
 import injector from '{{injector}}';
 import {{cName}} from './{{cName}}';

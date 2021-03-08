@@ -283,7 +283,7 @@ class Component {
         $vueLoc = str_replace(ROOT.DS.'App'.DS, '', $targetDir);
         $vueLocCount = count(explode(DS, $vueLoc));
 
-        $vueLoc = './'.str_repeat('../', $vueLocCount).'node/node_modules/vue/dist/vue.esm';
+        $vueLoc = './'.str_repeat('../', $vueLocCount).'node/node_modules/vue/dist/vue.min';
         $tsContent = str_replace('{{vuejs}}', $vueLoc, $tsContent);
 
         $injectorLoc = './'.str_repeat('../', $vueLocCount).'node/src/core/dom';
