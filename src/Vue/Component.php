@@ -179,20 +179,27 @@ class Component {
         $content = '';
         if(file_exists($targetDir.DS.$fName.'.'.$ext)){
             $content = file_get_contents($targetDir.DS.$fName.'.'.$ext);
+        } else {
+            $content = "import Vue from './../../../node/node_modules/vue/dist/vue.min';" . PHP_EOL  . PHP_EOL;
         }
 
-        $content .= "import '".$vueCom."';" . PHP_EOL;
+        $content .= PHP_EOL . '/**** '.$name.' ****/' . PHP_EOL;
+        $content .= "Vue.component('".strtolower($name)."', function (resolve, reject) {" . PHP_EOL;
+        $content .= "\timport(/* webpackChunkName: \"".$name."Component\" */ '".$vueCom."')" . PHP_EOL;
+        $content .= "\t.then(component => {resolve(component)});" . PHP_EOL;
+        $content .= "});" . PHP_EOL;
+        $content .= '/**** '.$name.' ****/' . PHP_EOL;
 
         $this->write($targetDir, $content, 'vue.components', 'ts');
 
-        $this->injectToJsonFile($name, $vendor, $module);
+        $this->injectToJsonFile($name, $vendor, $module, $vueCom);
     }
 
     /**
      * this will inject the new component into the
      * JSON file for reference
      */
-    protected function injectToJsonFile($name, $vendor, $module){
+    protected function injectToJsonFile($name, $vendor, $module, $vueCom){
         $targetDir = ROOT.DS.'App'.DS.'Ext'.DS.$vendor.DS.$module;
         $fileName = 'components';
         $ext = 'json';
@@ -210,7 +217,8 @@ class Component {
         $json[] = [
             'component_name' => $name,
             'vendor' => $vendor,
-            'module' => $module
+            'module' => $module,
+            'location' => $vendor . '/' . $module . str_replace('./', '/', $vueCom) . '.ts'
         ];
 
         $content = json_encode($json, JSON_PRETTY_PRINT);
