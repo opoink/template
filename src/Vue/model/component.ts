@@ -4,7 +4,7 @@ import injector from '{{injector}}';
 import {{cName}} from './{{cName}}';
 import './{{cName}}.scss';
 
-let name = '{{cNameLower}}';
+let name = 'vue-{{cNameLower}}';
 let tpl = injector.inject(require('./{{cName}}.html'), name);
 
 let {{cName}}Component = Vue.component(name, {

@@ -184,7 +184,7 @@ class Component {
         }
 
         $content .= PHP_EOL . '/**** '.$name.' ****/' . PHP_EOL;
-        $content .= "Vue.component('".strtolower($name)."', function (resolve, reject) {" . PHP_EOL;
+        $content .= "Vue.component('vue-".strtolower($name)."', function (resolve, reject) {" . PHP_EOL;
         $content .= "\timport(/* webpackChunkName: \"".$name."Component\" */ '".$vueCom."')" . PHP_EOL;
         $content .= "\t.then(component => {resolve(component)});" . PHP_EOL;
         $content .= "});" . PHP_EOL;
