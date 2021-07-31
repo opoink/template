@@ -14,7 +14,7 @@
     "require": {
         "php": ">=7.3.0",
         "php-di/php-di": "^5.4",
-        "opoink/cli": "dev-main"
+        "opoink/cli": "^1.0.0"
     },
     "authors": [
         {
