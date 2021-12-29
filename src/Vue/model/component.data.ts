@@ -1,4 +1,4 @@
-class {{cName}} {
+export class {{cName}} {
 
     constructor(){}
 
