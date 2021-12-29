@@ -21,10 +21,15 @@ let {{cName}}Component = Vue.component(name, {
 	// beforeRouteEnter (to, from, next) {
 	// 	{{cName}}.init(); /** call the init method in component service */
 	// 	next();
-	// }
+	// },
 	// mounted: () => {  
     // },
     // props: [],
+	// watch: {
+    //     $route(to, from) {
+    //         console.log('watch watch', to, from);
+    //     }
+    // },
     template: tpl
 });
 export default {{cName}}Component;
